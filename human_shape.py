@@ -46,12 +46,12 @@ class PoseDetector:
         return self.img_resized.copy()
 
     def gaussian_blur(self, img, kernel_size=5, sigma=1.4):
-        return cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma, sigma, cv2.BORDER_DEFAULT)
+        return cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma, sigma)
     
     
     def remove_background(self, img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        blk_thresh = gray.mean()  
+        blk_thresh = gray.mean()
         _, threshold_img = cv2.threshold(gray, blk_thresh, 255, cv2.THRESH_BINARY_INV)
 
         # Display the thresholded image
@@ -120,6 +120,18 @@ class PoseDetector:
         final_person[final_mask == 255] = self.img_resized[final_mask == 255]
 
         return final_person, final_mask
+    
+    def fill_holes(self, mask):
+        # Copy the mask
+        mask_copy = mask.copy()
+
+        # Fill the holes in the mask
+        cv2.floodFill(mask_copy, None, (0, 0), 255)
+        mask_inv = cv2.bitwise_not(mask_copy)
+        mask = mask | mask_inv
+        self.display_image(mask, 'Filled Holes Mask', gray=True)
+
+        return mask
 
 
     def run(self):
@@ -145,11 +157,14 @@ class PoseDetector:
         # Cluster pixels using DBSCAN just gray
         img, mask = self.cluster_pixels_DBSCAN_gray(img, eps=4, min_samples=2)
         self.display_image(img, 'Clustered Pixels Image')
-        self.display_image(mask, 'Final Clustered Pixels Mask', gray=True)
+
+        # Fill holes in the mask
+        mask = self.fill_holes(mask)
+        self.display_image(img=mask, title='Filled Holes Mask', gray=True)
 
         return self.img_resized, mask
 
 if __name__ == '__main__':
-    path_img = 'data/image4.jpg'
+    path_img = 'data/image1.jpg'
     pose = PoseDetector(path_img, display=True)
     img, mask = pose.run()
