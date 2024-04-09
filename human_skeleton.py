@@ -52,11 +52,12 @@ def find_intersections(skel):
     return intersections
 
 
-def plot_point_of_interest(skeleton):
+#def plot_point_of_interest(skeleton):
+def plot_point_of_interest(skel_thresh):
     # Read the skeleton image from file
     
     # Threshold the image to make sure it's binary
-    _, skel_thresh = cv2.threshold(skeleton, 127, 255, cv2.THRESH_BINARY)
+    # _, skel_thresh = cv2.threshold(skeleton, 127, 255, cv2.THRESH_BINARY)
     
     # Find the critical points on the skeleton
     endpoints, junctions = find_critical_points(skel_thresh)
@@ -128,40 +129,116 @@ def zhang_suen_thinning(image, display_,display_only_last):
                 p2 -  p6
                 p3 p4 p5
                 '''
-                p2 = img[i-1, j]
-                p3 = img[i-1, j+1]
-                p4 = img[i, j+1]
-                p5 = img[i+1, j+1]
-                p6 = img[i+1, j]
-                p7 = img[i+1, j-1]
-                p8 = img[i, j-1]
-                p9 = img[i-1, j-1]
+                p2 = img[i-1, j]# & marker[i-1,j]
+                p3 = img[i-1, j+1]# & marker[i-1,j-1]
+                p4 = img[i, j+1]# & marker[i,j+1]
+                p5 = img[i+1, j+1]# & marker[i+1,j+1]
+                p6 = img[i+1, j]# & marker[i+1,j]
+                p7 = img[i+1, j-1]# & marker[i+1,j-1]
+                p8 = img[i, j-1]# & marker[i,j-1]
+                p9 = img[i-1, j-1]# & marker[i-1,j-1]
 
+                if p2 == 0: 
+                    p2 = False
+                else:
+                    p2 = True
+                if p3 == 0: 
+                    p3 = False
+                else:
+                    p3 = True
+                if p4 == 0: 
+                    p4 = False
+                else:
+                    p4 = True
+                if p5 == 0: 
+                    p5 = False
+                else:
+                    p5 = True
+                if p6 == 0: 
+                    p6 = False
+                else:
+                    p6 = True
+                if p7 == 0: 
+                    p7 = False
+                else:
+                    p7 = True
+                if p8 == 0: 
+                    p8 = False
+                else:
+                    p8 = True
+                if p9 == 0: 
+                    p9 = False
+                else:
+                    p9 = True
+                
                 A  = (p2 == 0 and p3 == 1) + (p3 == 0 and p4 == 1) + \
                      (p4 == 0 and p5 == 1) + (p5 == 0 and p6 == 1) + \
                      (p6 == 0 and p7 == 1) + (p7 == 0 and p8 == 1) + \
                      (p8 == 0 and p9 == 1) + (p9 == 0 and p2 == 1)
+                
                 B  = p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9
                 m1 = (p2 * p4 * p6) if iter == 0 else (p2 * p4 * p8)
                 m2 = (p4 * p6 * p8) if iter == 0 else (p2 * p6 * p8)
+                
+                e0 = (p2 and p5)
+                e1 = (p2 and p6)
+                e2 = (p2 and p7)
+                e3 = (p6 and p9)
+                e4 = (p6 and p3)
+
+                n0 = (p4 and p7)
+                n1 = (p4 and p8)
+                n2 = (p4 and p9)
+                n3 = (p8 and p3)
+                n4 = (p8 and p5)
+
+                d0 = (p9 and p5)
+                d1 = (p3 and p7)
+
+                n = n0 or n1 or n2 or n3 or n4
+                e = e0 or e1 or e2 or e3 or e4
+                d = d0 or d1
+
+                # Alguno de estos es True
+                horizontal0 = e0 and not e1 and not e2 and not e3 and not e4 and not n and not d
+                horizontal1 = not e0 and e1 and not e2 and not e3 and not e4 and not n and not d
+                horizontal2 = not e0 and not e1 and e2 and not e3 and not e4 and not n and not d
+                horizontal3 = not e0 and not e1 and not e2 and e3 and not e4 and not n and not d
+                horizontal4 = not e0 and not e1 and not e2 and not e3 and e4 and not n and not d
+
+                vertical0   = n0 and not n1 and not n2 and not n3 and not n4 and not e and not d
+                vertical1   = not n0 and n1 and not n2 and not n3 and not n4 and not e and not d
+                vertical2   = not n0 and not n1 and n2 and not n3 and not n4 and not e and not d
+                vertical3   = not n0 and not n1 and not n2 and n3 and not n4 and not e and not d
+                vertical4   = not n0 and not n1 and not n2 and not n3 and n4 and not e and not d
+
+                diagonal0   = not n and not e and d0 and not d1
+                diagonal1   = not n and not e and not d0 and d1
+
+                # Alguno de estos es True
+                conecta_horizontal = horizontal0 or horizontal1 or horizontal2 or horizontal3 or horizontal4
+                conecta_vertical   = vertical0   or vertical1   or vertical2   or vertical3   or vertical4
+                conecta_diagonal   = diagonal0   or diagonal1
+                
+                concecta = conecta_horizontal or conecta_vertical or conecta_diagonal
+
+                if i == 107 and j == 60:
+                    print('p2=', p2, 'p3=', p3, 'p4=', p4, 'p5=', p5, 'p6=', p6, 'p7=', p7, 'p8=', p8, 'p9=', p9)
+                    #print('A=', A)
+                    #print('B=',B)
+                    print('n0',n0)
+                    #print('conecta_horizontal', conecta_horizontal, conecta_vertical, conecta_diagonal)
+                    print('horizontal0 ', horizontal0)#,horizontal1,horizontal2,horizontal3,horizontal4)
+                    print('e1 :', e1, not e1)
 
 
-                horizontal = (p2 and p6)
-                vertical = (p8 and p4)
-                diagonal1 = (p9 and p5)
-                diagonal2 = (p3 and p7)
-                conecta_horizontal = horizontal and not vertical and not diagonal1 and not diagonal2
-                conecta_vertical = vertical and not horizontal and not diagonal1 and not diagonal2
-                conecta_diagonal1 = diagonal1 and not diagonal2 and not vertical and not horizontal
-                conecta_diagonal2 = diagonal2 and not diagonal1 and not vertical and not horizontal
-                concecta = conecta_horizontal or conecta_vertical or conecta_diagonal1 or conecta_diagonal2
-    
-                if A == 1 and (B >= 2 and B <= 6) and m1 == 0 and m2 == 0 and not concecta:
+                # No está entrando al loop -> conecta = True
+                if A == 1 and (B >= 2 and B <= 6) and not concecta:
                     marker[i,j] = 0
-
 
         return img & marker
 
+    
     # Make sure the image is binary
     image = image // 255
     prev = np.zeros(image.shape, np.uint8)
@@ -177,20 +254,23 @@ def zhang_suen_thinning(image, display_,display_only_last):
         if diff == 0:
             break
         prev = image.copy()
-        if iter % 3 == 0 and display_:
+        if iter % 1 == 0 and display_:
             plt.figure(figsize=(10, 10))
             plt.imshow(image * 255, cmap='gray')
             plt.axis('off')
             plt.title('Skeleton of the Human Shape')
             plt.show()
+
     if not display_only_last:
         plt.figure(figsize=(10, 10))
         plt.imshow(image * 255, cmap='gray')
         plt.axis('off')
         plt.title('Skeleton of the Human Shape')
         plt.show()
-    return image * 255  # return image to original scale
 
+
+
+    return image * 255  # return image to original scale
 
 # We'll first recompute the minimum spanning tree.
 def compute_steiner_tree(points):
@@ -238,7 +318,7 @@ def plot_steiner_tree_on_image(mst, points, img):
 
     # Rotate the points
     rotated_points = points @ R
-    rotated_points *= 4
+    #rotated_points *= 4
     # Invert the x-axis by multiplying by -1
     rotated_points[:, 0] *= -1
     
@@ -252,7 +332,7 @@ def plot_steiner_tree_on_image(mst, points, img):
     translation = np.array([x_trans, y_trans])
 
     # Apply the translation to the points
-    translated_points = rotated_points + translation
+    translated_points = rotated_points# + translation
     translated_points = cv2.resize(translated_points, None, fx=1, fy=1, interpolation=cv2.INTER_NEAREST)
     
     # Now, plot the original image
@@ -272,15 +352,10 @@ def plot_steiner_tree_on_image(mst, points, img):
     plt.axis('off')  # Hide axes
     plt.show()
 
-def human_skeleton(image_path, display_ = False, display_only_last=True):
+
+def long_human_skeleton(original_img, binary_image, display_ = False, display_only_last=True):
 
     # 1
-    
-    # Load the image
-    original_image = cv2.imread(image_path, 0)
-    
-    # Ensure the image is binary
-    _, binary_image = cv2.threshold(original_image, 127, 255, cv2.THRESH_BINARY)
     
     # Apply Euclidean Distance Transform
     edt_image = distance_transform_edt(binary_image)
@@ -293,32 +368,24 @@ def human_skeleton(image_path, display_ = False, display_only_last=True):
     
     # Display the image
     if display_:
-        
         plt.imshow(skeleton_image, cmap='gray')
         plt.axis('off')  # Turn off the axis
         plt.title('Skeleton of the Human Shape')
         plt.show()
-        output_path = 'Images/skeleton_image.png'
-        cv2.imwrite(output_path, skeleton_image)
 
 
     # 2
     if not display_only_last:
-        skeleton = cv2.imread('Images/skeleton_image.png', 0)
-        plot_point_of_interest(skeleton)
+        plot_point_of_interest(skeleton_image)
 
     # 3
 
-    image_path = 'Images/shape humana.png'  # Provide the path to your image
-    original_image = cv2.imread(image_path)
-    resized_image = resize_image(original_image, display_)
-
+    #resized_image = resize_image(original_image, display_)
+    #resized_image = resize_image(binary_image, display_)
+    resized_image = binary_image
     # 4
 
     original_image = 255 - resized_image
-    
-    # Ensure the image is binary
-    _, binary_image = cv2.threshold(original_image, 127, 255, cv2.THRESH_BINARY_INV)
     
     # Perform skeletonization
     skeleton = zhang_suen_thinning(binary_image, display_, display_only_last)
@@ -349,10 +416,49 @@ def human_skeleton(image_path, display_ = False, display_only_last=True):
 
     # 6
     
-    image_path = 'Images/shape humana.png'
-    original_image = cv2.imread(image_path, 0)
+    #image_path = 'Images/shape humana.png'
+    #original_image = cv2.imread(image_path, 0)
+    original_image = original_img
 
     
+    plot_steiner_tree_on_image(mst, points, original_image)
+
+
+def human_skeleton(original_img, binary_image, display_ = False, display_only_last=True):
+
+    # 1
+  
+    original_image = 255 - binary_image
+    
+    # Perform skeletonization
+    skeleton = zhang_suen_thinning(binary_image, display_, display_only_last)
+    
+    # Show the skeleton
+    if display_:
+        plt.figure(figsize=(10, 10))
+        plt.imshow(skeleton, cmap='gray')
+        plt.axis('off')
+        plt.title('Skeleton of the Human Shape')
+        plt.show()
+
+    # 5
+    
+    points = []
+    for i in range(len(skeleton)):
+        for j in range(len(skeleton[0])):
+            if skeleton[i][j] > 0:
+                points.append((i,j))
+  
+    mst, points_array = compute_steiner_tree(points)
+
+    # Now, plot the rotated MST
+    if display_:
+        plot_steiner_tree_rotated(mst, points_array)
+
+    # 6
+
+    original_image = original_img
+
     plot_steiner_tree_on_image(mst, points, original_image)
 
 
