@@ -1,8 +1,7 @@
-from human_img_and_skeleton import show_human_and_skeleton
 from human_skeleton import human_skeleton
 from human_shape import human_shape
 
-img_path = "data/image1.jpg"
+img_path = "Images/image1.jpg"
 display_img = False
 
 # Retun image and mask with 0 and 1
