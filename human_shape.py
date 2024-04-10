@@ -129,7 +129,6 @@ class PoseDetector:
         cv2.floodFill(mask_copy, None, (0, 0), 255)
         mask_inv = cv2.bitwise_not(mask_copy)
         mask = mask | mask_inv
-        self.display_image(mask, 'Filled Holes Mask', gray=True)
 
         return mask
 
