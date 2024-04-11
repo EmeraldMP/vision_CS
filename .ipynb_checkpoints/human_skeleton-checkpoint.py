@@ -222,6 +222,16 @@ def zhang_suen_thinning(image, display_,display_only_last):
                 
                 concecta = conecta_horizontal or conecta_vertical or conecta_diagonal
 
+                if i == 107 and j == 60:
+                    print('p2=', p2, 'p3=', p3, 'p4=', p4, 'p5=', p5, 'p6=', p6, 'p7=', p7, 'p8=', p8, 'p9=', p9)
+                    #print('A=', A)
+                    #print('B=',B)
+                    print('n0',n0)
+                    #print('conecta_horizontal', conecta_horizontal, conecta_vertical, conecta_diagonal)
+                    print('horizontal0 ', horizontal0)#,horizontal1,horizontal2,horizontal3,horizontal4)
+                    print('e1 :', e1, not e1)
+
+
                 # No está entrando al loop -> conecta = True
                 if A == 1 and (B >= 2 and B <= 6) and not concecta:
                     marker[i,j] = 0
